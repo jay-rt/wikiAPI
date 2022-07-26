@@ -16,7 +16,7 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 
 //Connecting to mongoDB
-await mongoose.connect("mongodb://127.0.0.1:27017/wikiDB");
+mongoose.connect("mongodb://127.0.0.1:27017/wikiDB");
 
 //Request targetting all articles
 app
@@ -45,6 +45,48 @@ app
     try {
       await Article.deleteMany();
       res.send("Successfully deleted all articles");
+    } catch (err) {
+      res.send(err);
+    }
+  });
+
+//Request targeting particular article
+app
+  .route("/articles/:articleTitle")
+  .get(async (req, res) => {
+    try {
+      const article = await Article.findOne({ title: req.params.articleTitle });
+      res.send(article);
+    } catch {
+      res.send("No article matching the title was found");
+    }
+  })
+  .put(async (req, res) => {
+    try {
+      await Article.replaceOne(
+        { title: req.params.articleTitle },
+        { title: req.body.title, content: req.body.content }
+      );
+      res.send("Successfully replaced the article");
+    } catch (err) {
+      res.send(err);
+    }
+  })
+  .patch(async (req, res) => {
+    try {
+      await Article.updateOne(
+        { title: req.params.articleTitle },
+        { $set: req.body }
+      );
+      res.send("Successfully updated the article.");
+    } catch (err) {
+      res.send(err);
+    }
+  })
+  .delete(async (req, res) => {
+    try {
+      await Article.deleteOne({ title: req.params.articleTitle });
+      res.send("Successfully deleted the article.");
     } catch (err) {
       res.send(err);
     }
